@@ -16,6 +16,7 @@ out/
 .env.*
 /src/config/config.yaml
 /src/config.yaml
+config.yaml
 
 # Logs
 npm-debug.log*
