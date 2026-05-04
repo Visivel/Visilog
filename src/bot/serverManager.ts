@@ -10,25 +10,30 @@ export class serverManager{
     const bot = this.mc.getBot()
 
     bot.once('spawn', () => {
+        setTimeout(() => {
         this.checkSlot(bot)
-    //   setInterval(() => {
-    //     console.log('held:', bot.heldItem)
-    //     console.log('inv:', bot.inventory.items())
-    //   }, 5000)
+        }, 1500);
+
+        // setInterval(() => {
+        //     console.log('held:', bot.heldItem)
+        //     console.log('inv:', bot.inventory.items())
+        // }, 5000)
     })
 
     bot.on('forcedMove', () => {
-        if(dados.teleportMsg == true){
-            console.log('Bot teleportado')
+        if(dados.config.teleportMsg == true){
+             console.log('Bot teleportado')
         } else return
         // Solucao barata mas ok
         
-        this.checkSlot(bot)
+        setTimeout(() => {
+            this.checkSlot(bot)
+        }, 2500);
     })
 
     bot.on('windowOpen',()=>{
         bot.clickWindow(13,0,0)
-
+        console.log("Enviando bot para o servidor...")
     })
 
     
@@ -48,7 +53,7 @@ export class serverManager{
             
             setTimeout(() => {
                 bot.activateItem()
-            }, 500);
+            }, 1500);
         }
     }
   }

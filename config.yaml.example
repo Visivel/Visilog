@@ -7,3 +7,6 @@ bot:
 
 config:
   teleportMsg: false 
+
+grafanaConfig:
+  expressPort: 3001
