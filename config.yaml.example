@@ -1,3 +1,9 @@
 bot:
-  username: "Visibot"
+  username: "Nickname do Bot"
   senha: "Coloque a senha do bot aqui"
+
+# teleportMsg -> caso true, toda vez que o bot for teleportado
+# recebera um print no console, recomendamos nao ativar por causa de spam.
+
+config:
+  teleportMsg: false 

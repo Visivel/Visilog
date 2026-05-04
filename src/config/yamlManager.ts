@@ -3,7 +3,8 @@ import { parse } from 'yaml'
 
 interface Config{
     username: string,
-    senha: string
+    senha: string,
+    teleportMsg: boolean
 }
 
 const arquivo = fs.readFileSync('./config.yaml', 'utf-8')

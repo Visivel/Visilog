@@ -1,3 +1,4 @@
+import { dados } from "../config/yamlManager";
 import { MCBot } from "./botManager";
 
 export class serverManager{
@@ -17,8 +18,12 @@ export class serverManager{
     })
 
     bot.on('forcedMove', () => {
-      console.log('Bot teleportado')
-      this.checkSlot(bot)
+        if(dados.teleportMsg == true){
+            console.log('Bot teleportado')
+        } else return
+        // Solucao barata mas ok
+        
+        this.checkSlot(bot)
     })
 
     bot.on('windowOpen',()=>{
