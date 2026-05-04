@@ -1,0 +1,9 @@
+[33m67bcab8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{0}: pull --rebase origin main (finish): returning to refs/heads/main
+[33m67bcab8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{1}: pull --rebase origin main (pick): arrumando yaml
+[33m7a1e713[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{2}: pull --rebase origin main (start): checkout 7a1e7134e893b222042516d197c1b3c6cb03c61f
+[33m2fce262[m HEAD@{3}: commit: arrumando yaml
+[33mc636f59[m HEAD@{4}: pull --rebase origin main (finish): returning to refs/heads/main
+[33mc636f59[m HEAD@{5}: pull --rebase origin main (pick): upload
+[33m1745e50[m HEAD@{6}: pull --rebase origin main (start): checkout 1745e50d813590d9f08c92b121274150b7fea932
+[33mf37564a[m HEAD@{7}: Branch: renamed refs/heads/master to refs/heads/main
+[33mf37564a[m HEAD@{9}: commit (initial): upload
