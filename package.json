@@ -1,0 +1,37 @@
+{
+  "name": "visilog",
+  "version": "1.0.0",
+  "description": "Visibot coletando dados bawmc gugugaga",
+  "keywords": [
+    "mineflayer",
+    "bot",
+    "minecraft",
+    "grafana",
+    "prometheus"
+  ],
+  "homepage": "https://github.com/Visivel/Visilog#readme",
+  "bugs": {
+    "url": "https://github.com/Visivel/Visilog/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Visivel/Visilog.git"
+  },
+  "license": "GPL-3.0-or-later",
+  "author": "Visivel",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "mineflayer": "^4.37.1",
+    "yaml": "^2.8.4"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}
