@@ -1,5 +1,5 @@
 import client from 'prom-client'
-import { register } from './registry'
+import { register } from '../registry'
 
 export class onlinePlayer{
     private gauge = new client.Gauge({

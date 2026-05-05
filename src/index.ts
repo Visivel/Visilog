@@ -23,4 +23,3 @@ const metricManage = new metricManager(bot)
     metricMain.start(dados.grafanaConfig.expressPort)
     metricManage.start()
 
-
