@@ -9,6 +9,7 @@ interface Config{
 
     config:{
         teleportMsg: boolean
+        printMsg: boolean
     }
     
     grafanaConfig:{

@@ -6,7 +6,8 @@ bot:
 # recebera um print no console, recomendamos nao ativar por causa de spam.
 
 config:
-  teleportMsg: false 
+  teleportMsg: false
+  printMsg: true # escreve no console as mensagens do chat
 
 grafanaConfig:
   expressPort: 3001

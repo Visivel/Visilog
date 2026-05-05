@@ -1,12 +1,18 @@
 import mineflayer from 'mineflayer'
 import { botState } from '../metrics/metrics/botStatus'
+import { msgCounter } from '../metrics/metrics/msgCounter'
+import { dados } from '../config/yamlManager'
 
 export class MCBot{
     private bot !: mineflayer.Bot
     private username: string
     private host: string
     private version: string
+    
+    private mensagens: number = 0//ou bigint
+
     private botStat = new botState()
+    private msgCounter = new msgCounter()
 
     constructor(username: string, host: string, version: string){
         this.username = username,
@@ -20,6 +26,11 @@ export class MCBot{
             host: this.host,
             version: this.version
         })
+
+        // temporario ate novas metricas de rtp
+        setInterval(() => {
+            this.bot.chat("/spawn")
+        }, 120000);
         
         this.bot.once('spawn', ()=>{
             this.botStat.set(1)
@@ -27,7 +38,11 @@ export class MCBot{
         })
 
         this.bot.on('message', (msg)=>{
-            console.log(msg.toString())
+            if(dados.config.printMsg){
+                console.log(msg.toString())
+            }
+            this.mensagens+=1
+            this.msgCounter.set(this.mensagens)
         })
 
         this.bot.on('kicked', (err)=>{
