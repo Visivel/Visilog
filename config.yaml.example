@@ -1,6 +1,6 @@
 bot:
-  username: "Visibot"
-  senha: "teste2"
+  username: "Coloque o nome do bot aqui"
+  senha: "Coloque a senha do bot aqui"
   versao: '1.20.1'
 
 # teleportMsg -> caso true, toda vez que o bot for teleportado
