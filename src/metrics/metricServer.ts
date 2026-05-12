@@ -5,7 +5,7 @@ export class metricServer{
     private app = express()
     private started = false
 
-    start(port: number){
+    init(port: number){
         if (this.started) return
         this.started = true
 

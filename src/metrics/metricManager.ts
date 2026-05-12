@@ -11,7 +11,7 @@ export class metricManager{
 
     constructor(private mc: MCBot){}
 
-    start(){
+    init(){
         const bot = this.mc.getBot()
 
         bot.on('playerJoined',()=>{

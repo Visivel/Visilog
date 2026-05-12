@@ -4,7 +4,8 @@ import { parse } from 'yaml'
 interface Config{
     bot:{
         username: string
-        senha: string
+        senha: string,
+        versao: string
     }
 
     config:{
@@ -15,6 +16,8 @@ interface Config{
     grafanaConfig:{
         expressPort: number
     }
+
+    basefinder: string[]
 }
 
 const arquivo = fs.readFileSync('./config.yaml', 'utf-8')

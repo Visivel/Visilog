@@ -27,14 +27,18 @@
   "dependencies": {
     "express": "^5.2.1",
     "fs": "^0.0.1-security",
+    "minecraft-data": "^3.110.0",
+    "minecraft-protocol": "^1.66.1",
     "mineflayer": "^4.37.1",
     "prom-client": "^15.1.3",
+    "vec3": "^0.2.0",
     "yaml": "^2.8.4"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.6.2",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   }
 }
