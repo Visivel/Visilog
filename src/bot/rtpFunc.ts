@@ -32,7 +32,7 @@ export class rtpFunc{
     
                     const blocks = bot.findBlocks({
                         matching: (block)=>{ // colocar na config.yml dps
-                            return dados.basefinder.some(name => block.name.includes(name))
+                            return dados.blockLogger.some(name => block.name.includes(name))
                         },
                         maxDistance: 256,
                         count: 100

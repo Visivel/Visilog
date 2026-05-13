@@ -13,7 +13,7 @@ config:
 grafanaConfig:
   expressPort: 3001
 
-basefinder:
+blockLogger:
   - ender_chest
   - anvil
   - chipped_anvil

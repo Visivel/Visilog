@@ -17,7 +17,7 @@ interface Config{
         expressPort: number
     }
 
-    basefinder: string[]
+    blockLogger: string[]
 }
 
 const arquivo = fs.readFileSync('./config.yaml', 'utf-8')
