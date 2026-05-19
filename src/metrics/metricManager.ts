@@ -3,9 +3,11 @@
 import { csvBases } from "./metrics/csvBases";
 import { csvBlocos } from "./metrics/csvBlocos";
 import { csvLoots } from "./metrics/csvLoots";
+import { csvTeleportsCount } from "./metrics/csvTeleportsCount";
     import { onlinePlayer } from "./metrics/onlinePlayers";
     import { tpsLogger } from "./metrics/tpsLogger";
     import fs from 'fs'
+
 
     // ARRUMAR URGENTE ESSE CODIGO DEPOIS KKKKKKKK
 
@@ -16,10 +18,12 @@ import { csvLoots } from "./metrics/csvLoots";
         private blockGauge = new csvBlocos()
         private lootGauge = new csvLoots()
         private baseGauge = new csvBases()
+        private teleportGauge = new csvTeleportsCount()
 
         private blockCount = 0
         private lootCount = 0
         private baseCount = 0
+        private teleportCount = 0
         private timer?: NodeJS.Timeout
 
         constructor(private mc: MCBot){}
@@ -28,12 +32,14 @@ import { csvLoots } from "./metrics/csvLoots";
             this.blockCount = this.countCsv('./src/bot/playeractivity/csvs/blocks.csv')
             this.lootCount = this.countCsv('./src/bot/playeractivity/csvs/loots.csv')
             this.baseCount = this.countCsv('./src/bot/playeractivity/csvs/bases.csv')
+            this.teleportCount = this.countCsv('./src/bot/playeractivity/csvs/teleports.csv')
             const bot = this.mc.getBot()
 
             setInterval(() => {
                 const newBlock = this.countCsv('./src/bot/playeractivity/csvs/blocks.csv')
                 const newLoot = this.countCsv('./src/bot/playeractivity/csvs/loots.csv')
                 const newBase = this.countCsv('./src/bot/playeractivity/csvs/bases.csv')
+                const newTeleport = this.countCsv('./src/bot/playeractivity/csvs/teleports.csv')
 
                 if(newBlock > this.blockCount){
                     this.blockCount = newBlock
@@ -46,6 +52,10 @@ import { csvLoots } from "./metrics/csvLoots";
                 if(newBase > this.baseCount){
                     this.baseCount = newBase
                     this.baseGauge.set(newBase)
+                }
+                if(newTeleport > this.teleportCount){
+                    this.teleportCount = newTeleport
+                    this.teleportGauge.set(newTeleport)
                 }
                 
             }, 5000);
