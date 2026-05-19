@@ -5,11 +5,11 @@ Visibot voltou pra coletar dados
 </p>
 
 # Contexto
-Em Maio de 2024 eu lancei o bot que mudou a comunidade brasileira de Semi Anarquia no Minecraft, chamado de Visibot, ele foi muito usado em un servidor chamado [OnewayCraft](https://discord.gg/A5Fs3n8jbC) <img src="https://cdn.discordapp.com/icons/1355315124197523556/ef60650c964381a433b08eee4b11f4a1.webp?size=1024" width="25">, isso inspirou muitos outros a fazer bots também para outros servidores, enfim ele chegou a um fim, já que meu aprendizado nele ja estava maximizado, ele não me rendia nada, nem aprendizado e nem dinheiro, então, cheguei a conclusão de encerrar seus serviços.
+Em Maio de 2024 eu lancei o bot que mudou a comunidade brasileira de Semi Anarquia no Minecraft, chamado de Visibot, ele foi muito usado em um servidor chamado [OnewayCraft](https://discord.gg/A5Fs3n8jbC) <img src="https://cdn.discordapp.com/icons/1355315124197523556/ef60650c964381a433b08eee4b11f4a1.webp?size=1024" width="25">, isso inspirou muitos outros a fazer bots também para outros servidores, enfim ele chegou a um fim, já que meu aprendizado nele ja estava maximizado, ele não me rendia nada, nem aprendizado e nem dinheiro, então, cheguei a conclusão de encerrar seus serviços.
 
 ### Mas então... Por que voltou?
 
-O motivo da volta dele foi o mesmo de sua nascensa, aprendizado, com um novo servidor maior, eu tive outras ideais de outras coisas pra fazer, dentro dela, coleta de dados em massa. Em maioria ela sera usada para estatísticas, heatmaps (mapa de calor) e dentre outros. Eu fiz ele porque é em Typescript (o que eu não tenho tanta dominância) e também por causa do aprendizado do Grafana e Prometheus. 
+O motivo da volta dele foi o mesmo de sua nascensa, aprendizado, com um novo servidor maior, eu tive outras ideias de outras coisas pra fazer, dentro dela, coleta de dados em massa. Em maioria ela sera usada para estatísticas, heatmaps (mapa de calor) e dentre outros. Eu fiz ele porque é em Typescript (o que eu não tenho tanta dominância) e também por causa do aprendizado do Grafana e Prometheus. 
 
 # Índice
 - [Utilização](#o-que-ele-faz-e-como-usar)
@@ -29,7 +29,8 @@ O motivo da volta dele foi o mesmo de sua nascensa, aprendizado, com um novo ser
 > [!WARNING]
 > Para utilizar o bot e prosseguir, você antes precisa já ter instalado o [NodeJS](https://nodejs.org) <img src="https://skillicons.dev/icons?i=nodejs" width=30/>.
 
-Primeiro clone o repositório
+Primeiro clone o repositório\
+*ou clique em ``Code -> Download ZIP`` e então extraia o arquivo*
 ```bash
 git clone https://github.com/Visivel/Visilog.git
 ```
