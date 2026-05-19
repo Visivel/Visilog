@@ -5,7 +5,7 @@ export type basefinderTipos =
   | 'sky_build'
   | 'bedrock'
   | 'spawner'
-  | 'nether_roof'
+  | 'pvp'
   | 'item_frame'
   | 'ender_pearl'
   | 'nametag'

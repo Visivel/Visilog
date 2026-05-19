@@ -22,3 +22,6 @@ blockLogger:
   - shulker_box
   - respawn_anchor
   - lodestone
+
+basefinder:
+  logSpawner: false

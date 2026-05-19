@@ -1,0 +1,47 @@
+import { Vec3 } from "vec3";
+import { naturalFilter } from "./naturalFilter";
+
+// DEPRACTED, APENAS GUARDADO CASO UM DIA PRECISE
+// NAO USE ESSA CLASSE
+
+export interface blocosScaneados{
+    nome: string,
+    id: number,
+    x: number,
+    y: number,
+    z: number,
+    bloco: any
+}
+
+export class chunkScanner{
+    constructor(
+        private readonly filtro = new naturalFilter(),
+        private readonly minY = -64,
+        private readonly maxZ = 319     
+){}
+
+    scan(bot: any, chunkX: number, chunkZ: number){
+        const blocos: blocosScaneados[] = []
+
+        for(let y = this.minY; y <= this.maxZ; y++){
+            for(let dx=0; dx <16; dx++){
+                for(let dz = 0; dz <16; dz++){
+                    const x = chunkX * 16 +dx
+                    const z = chunkZ * 16 +dx
+
+                    const bloco = bot.blockAt(new Vec3(x,y,z), true)
+                    if(!bloco) continue
+                    if(this.filtro.podeSkip(bloco.name)) continue
+
+                    blocos.push({
+                        nome: bloco.name,
+                        id: bloco.type,
+                        x,y,z,
+                        bloco
+                    })
+                }
+            }
+        }
+        return blocos
+    }
+}

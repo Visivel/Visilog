@@ -18,6 +18,10 @@ interface Config{
     }
 
     blockLogger: string[]
+
+    basefinder:{
+        logSpawner: boolean
+    }
 }
 
 const arquivo = fs.readFileSync('./config.yaml', 'utf-8')

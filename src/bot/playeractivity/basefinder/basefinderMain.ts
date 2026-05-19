@@ -1,303 +1,216 @@
-import { Vec3 } from "vec3";
-import { MCBot } from "../../botManager";
-import { dados } from "../../../config/yamlManager";
-import { csvBasefinder } from "../csvBasefinder";
-import { basefinderTipos, basefinderValues, basefinderLog } from "./basefinderTypes";
+import { MCBot } from "../../botManager"
+import { csvBasefinder } from "../csvBasefinder"
+import { basefinderTipos, basefinderValues } from "./basefinderTypes"
+import { blockDetector } from "./detects/blockDetector"
+import { entityDetector } from "./detects/entityDetector"
+import { illegalDetector } from "./detects/illegalDetector"
+import { portalDetector } from "./detects/portalDetector"
+import { redstoneDetector } from "./detects/redstoneDetector"
+import { signDetector } from "./detects/signDetector"
+import { skybuildDetector } from "./detects/skybuildDetector"
+import { storageDetector } from "./detects/storageDetector"
+import { clusterDetector } from "./detects/clusterDetector"
+import { chunkScore } from "./utils/chunkScore"
+import { baseCache } from "./utils/baseCache"
+import { chunkChave } from "./utils/chunkChave"
+import { toChunk } from "./utils/chunkMath"
+import { scanChunk } from "./utils/scanChunk"
+import { naturalFilter } from "./utils/naturalFilter"
+import { snowflake } from "./utils/snowflake"
 
-// Creditos:
-// https://github.com/etianl/Trouser-Streak/blob/main/src/main/java/pwn/noobs/trouserstreak/modules/BaseFinder.java
 
-type tipoEntidade = {
-    name?: string,
-    displayName?: string,
-    position?: {x:number, y:number, z:number},
-    metadata?: unknown[],
-    villagerData?: { level?: number},
-    customName?: string
-}
+export class basefinderMain {
+    private blockDet = new blockDetector()
+    private entityDet = new entityDetector()
+    private illegalDet = new illegalDetector()
+    private portalDet = new portalDetector()
+    private redstoneDet = new redstoneDetector()
+    private placaDet = new signDetector()
+    private skybuildDet = new skybuildDetector()
+    private storageDet = new storageDetector()
+    private clusterDet = new clusterDetector()
+    private scores = new chunkScore()
+    private cache = new baseCache()
+    private filtro = new naturalFilter()
 
-type itemMeta = {
-    itemId?: number,
-    itemCount?: number,
-    nbtData?: unknown
-}
-
-export class basefinderMain{
-    private started = false
-    private baseAchada = false
-    private baseTicks = 0
-    private entityScanTicks = 0
-
-    private scannedChunks = new Set<string>()
-    private baseChunks = new Set<string>()
-    private logBasePos = new Set<string>()
-    private loggedBases: basefinderLog[] = []
-
-    constructor(private mc: MCBot, private csv: csvBasefinder){}
+    constructor(
+        private mc: MCBot,
+        private csv: csvBasefinder
+    ){}
 
     init(){
         const bot = this.mc.getBot()
 
-        if(this.started) return
-        this.started = true
-
-        bot.on('chunkColumnLoad', (ponto)=>{
-            const chunkX = Math.floor(ponto.x / 16)
-            const chunkZ = Math.floor(ponto.y / 16)
-            void this.scanChunk(chunkX, chunkZ)
-        })
-
-        bot.on('entitySpawn', (entity)=>{
-            this.scanUmEntity(entity as tipoEntidade)
-        })
-
-        bot.on('physicsTick', ()=>{
-            this.tick()
+        bot.on('spawn', () =>{
+            setInterval(() => this.scanAmbiente(bot), 10000)
         })
     }
 
-    private tick(){
-        if (this.baseAchada && this.baseTicks < 5){
-            this.baseTicks++
-        } else if (this.baseTicks >= 5){
-            this.baseAchada = false
-            this.baseTicks = 0
-        }
-
-        if(this.entityScanTicks < 20){
-            this.entityScanTicks++
-            return
-        }
-
-        this.entityScanTicks = 0
-        this.scanEntities()
+    private isSpawn(x: number, z: number){
+        return Math.abs(x) <= 100 && Math.abs(z) <= 100
+        // 100 => limite do spawn, abaixo de 100 ate -100 nao da log
     }
 
-    private async scanChunk(chunkX: number, chunkZ: number){
-        const bot = this.mc.getBot()
-        await bot.waitForChunksToLoad()
+    private async scanAmbiente(bot: any){
+        if(!bot.entity.position) return
+        if(this.isSpawn(bot.entity.position.x, bot.entity.position.z)) return
 
-        const chave = `${chunkX}:${chunkZ}`
-        if(this.scannedChunks.has(chave)) return
-        this.scannedChunks.add(chave)
+        try{
+            await bot.waitForChunksToLoad() 
+        } catch{}
 
-        const minY = -64
-        const maxY = 319
+        const centroX = toChunk(bot.entity.position.x)
+        const centroZ = toChunk(bot.entity.position.z)
+        const raio = 3
 
-        for(let dx=0; dx < 16; dx++){
-            for(let dz = 0; dz <16; dz++){
-                for(let y = minY; y <= maxY; y++){
-                    const x = chunkX*16+dx
-                    const z = chunkZ*16+dz
+        for(let dx = -raio; dx <= raio; dx++){
+            for(let dz = -raio; dz <= raio; dz++){
+                const cx = centroX + dx
+                const cz = centroZ + dz
+                const chave = chunkChave(cx, cz)
+                if (this.cache.has(chave)) continue
+                await this.scanChunk(bot, cx, cz)
+                this.cache.add(chave)
+            }
+        }
 
-                    const block = bot.blockAt(new Vec3(x, y, z), true)
-                    if(!block) continue
+        this.scanEntities(bot, centroX, centroZ, raio)
+    }
 
-                    const tipo = this.getBlockTipo(block.name, y)
-                    if(!tipo) continue
+    private async scanChunk(bot: any, chunkX: number, chunkZ: number){
+        const chave = chunkChave(chunkX, chunkZ)
+        const detections: basefinderValues[] = []
+        let portalLogged = false
 
-                    const score = this.getBlockScore(block.name, y)
-                    if(score <= 0) continue
+        await scanChunk(bot, chunkX, chunkZ, (bloco, x, y, z) =>{
+            if(this.filtro.podeSkip(bloco.name)) return
+            if(this.isSpawn(x, z)) return
 
-                     this.markBase({
-                             tipos: tipo, // eu sei kkkkk
-                             chunkX,
-                             chunkZ,
-                             x,
-                             y,
-                             z,
-                             name: block.name,
-                             id: block.type,
-                             score
-                         }) 
+            const result = this.detectBlock(bloco, x, y, z)
+            if(!result) return
+            if(result.tipos === 'bubble_column') return
+            if(result.tipos === 'open_portal') {
+                if (portalLogged) return
+                portalLogged = true
+            }
+
+            this.scores.add(chave, result.score)
+            detections.push(result)
+        }, 0, 260)
+
+        if(this.scores.get(chave) >= 20) { // 20 => score max
+            for(const d of detections) {
+                this.csv.save(d)
+            }
+        }
+    }
+
+    private detectBlock(bloco: any,x: number, y: number, z: number): basefinderValues | null{
+        const nome = bloco.name.toLowerCase()
+        const sf = snowflake()
+        const chunkX = toChunk(x)
+        const chunkZ = toChunk(z)
+
+        const resultPlaca = nome.includes('sign') ? this.placaDet.detect(bloco) : null
+        if(resultPlaca){
+            return {
+                snowflake: sf,
+                tipos: resultPlaca.tipo,
+                chunkX, chunkZ,
+                x, y, z,
+                name: bloco.name,
+                id: bloco.type ?? 0,
+                score: resultPlaca.score
+            }
+        }
+
+        const candidates: Array<{ tipo: basefinderTipos; score: number } | null> =[
+            this.portalDet.detect(nome),
+            this.illegalDet.detect(nome, y),
+            this.redstoneDet.detect(nome),
+            this.storageDet.detect(nome),
+        ]
+
+        const sky = this.skybuildDet.detect(nome, y)
+        if(sky) candidates.push(sky)
+
+        const bdTipo = this.blockDet.getTipo(nome, y)
+        if(bdTipo){
+            if(!(bdTipo === 'sky_build' && this.skybuildDet.detect(nome, y) === null)){
+                candidates.push({ tipo: bdTipo, score: this.blockDet.getScore(nome, y) })
+            }
+        }
+
+        let best: { tipo: basefinderTipos; score: number } | null = null
+        for(const r of candidates){
+            if(r && (!best || r.score > best.score)){
+                best = r
+            }
+        }
+
+        if(!best) return null
+
+        return{
+            snowflake: sf,
+            tipos: best.tipo,
+            chunkX, chunkZ,
+            x, y, z,
+            name: bloco.name,
+            id: bloco.type ?? 0,
+            score: best.score
+        }
+    }
+
+    private scanEntities(bot: any, centerX: number, centerZ: number, radius: number){
+        const entities: any[] = Object.values(bot.entities ?? {})
+        const porChunk = new Map<string, basefinderValues[]>()
+        const clusterCount = new Map<string, number>()
+
+        for(const entity of entities) {
+            const ex = toChunk(entity.position?.x ?? 0)
+            const ez = toChunk(entity.position?.z ?? 0)
+            if(Math.abs(ex - centerX) > radius || Math.abs(ez - centerZ) > radius) continue
+            if(this.isSpawn(entity.position?.x ?? 0, entity.position?.z ?? 0)) continue
+
+            const result = this.entityDet.detect(entity.name ?? '')
+            if(result){
+                const chave = chunkChave(ex, ez)
+                this.scores.add(chave, result.score)
+
+                const val: basefinderValues ={
+                    snowflake: snowflake(),
+                    tipos: result.tipo,
+                    chunkX: ex,
+                    chunkZ: ez,
+                    x: Math.floor(entity.position?.x ?? 0),
+                    y: Math.floor(entity.position?.y ?? 0),
+                    z: Math.floor(entity.position?.z ?? 0),
+                    name: entity.name ?? 'unknown',
+                    id: entity.type ?? entity.id ?? 0,
+                    score: result.score
                 }
 
-                
+                const existind = porChunk.get(chave) ?? []
+                existind.push(val)
+                porChunk.set(chave, existind)
+            }
+
+            const chave = chunkChave(ex, ez)
+            clusterCount.set(chave, (clusterCount.get(chave) ?? 0) + 1)
+        }
+
+        for(const [chave, count] of clusterCount){
+            if (this.clusterDet.isCluster(count)){
+                this.scores.add(chave, this.clusterDet.getScore(count))
             }
         }
-    }
 
-    private scanEntities(){
-        const bot = this.mc.getBot()
-        const render = 32
-
-        for(const entity of Object.values(bot.entities) as tipoEntidade[]){
-            this.scanUmEntity(entity)
-         }
-
-        const playerChunkX = Math.floor(bot.entity.position.x/16)
-        const playerChunkZ = Math.floor(bot.entity.position.x/16)
-        
-        let entityCount = 0
-         for(const entity of Object.values(bot.entities) as tipoEntidade[]){
-             if(!entity.position) continue
-
-             const chunkX = Math.floor(bot.entity.position.x/16)
-             const chunkZ = Math.floor(bot.entity.position.x/16)
-
-             if(Math.abs(chunkX - playerChunkX) <= render && Math.abs(chunkZ - playerChunkZ) <= render){
-                 entityCount++
-             }
-            
-         }
-
-        if(entityCount >=14){
-            const chunkChave = `${playerChunkX}:${playerChunkZ}`
-            if(!this.baseChunks.has(chunkChave)){
-                this.baseChunks.add(chunkChave)
-                this.markBase({
-                    tipos: 'entity_cluster',
-                    chunkX: playerChunkX,
-                    chunkZ: playerChunkZ,
-                    x: bot.entity.position.x,
-                    y: bot.entity.position.y,
-                    z: bot.entity.position.z,
-                    name: 'entity_cluster',
-                    id: 0,
-                    score: 14
-                })
+        for(const [chave, detections] of porChunk){
+            if (this.scores.get(chave) >= 20) { // 20 => score max
+                for (const d of detections) {
+                    this.csv.save(d)
+                }
             }
-        }
-    }
-
-    private scanUmEntity(entity: tipoEntidade){
-        if(!entity.position) return
-
-        const x = Math.floor(entity.position.x)
-        const y = Math.floor(entity.position.y)
-        const z = Math.floor(entity.position.z)
-        const chunkX = Math.floor(x / 16)
-        const chunkZ = Math.floor(z / 16)
-
-        const name = (entity.name ?? '').toLowerCase()
-        const display = (entity.displayName ?? '').toLowerCase()
-        const custom = (entity.customName ?? '').toLowerCase()
-
-        if(name === 'item_frame' || name == 'glow_item_frame'){
-            this.markBase({
-                tipos: 'item_frame',
-                chunkX,
-                chunkZ,
-                x,
-                y,
-                z,
-                name: entity.name ?? 'item_frame',
-                id: 0,
-                score: 4
-            })
-            return
-        }
-
-        if(name.includes('pearl')){
-            this.markBase({
-                tipos: 'ender_pearl',
-                chunkX,
-                chunkZ,
-                x,y,z,
-                name: entity.name ?? 'ender_pearl',
-                id: 0,
-                score: 5
-            })
-        }
-        return
-
-        if(name.includes('villager')){
-            const level = entity.villagerData?.level ?? 1
-            if(level > 1){
-                this.markBase({
-                    tipos: 'villager',
-                    chunkX,
-                    chunkZ,
-                    x,y,z,
-                    name: entity.name ?? 'villager',
-                    id: 0,
-                    score: 6
-                })
-            }
-            return
-        }
-
-        if(name.includes('boat')){
-            this.markBase({
-                tipos: 'boat',
-                chunkX, chunkZ,
-                x,y,z,
-                name: entity.name ?? 'boat',
-                id: 0,
-                score: 3
-            })
-        }
-        return
-
-        if(custom || display){
-            this.markBase({
-                tipos: 'nametag',
-                chunkX, chunkZ,
-                x,y,z,
-                name: entity.name ?? 'nametagged',
-                id: 0,
-                score: 3
-            })
-        }
-    }
-
-    private getBlockTipo(name: string, y: number): basefinderTipos | null{
-        const n = name.toLocaleLowerCase()
-
-        if (n.includes('sign')) return 'written_sign'
-        if (n === 'nether_portal' || n === 'end_portal' || n === 'portal') return 'open_portal'
-        if (n === 'bubble_column') return 'bubble_column'
-        if (n === 'bedrock' && y > 4) return 'bedrock'
-        if (n === 'spawner' || n === 'mob_spawner') return 'spawner'
-        if (n === 'respawn_anchor' || n === 'end_gateway') return 'nether_roof'
-        if (n.includes('planks') || n.includes('glass') || n.includes('torch') || n.includes('lantern') || n.includes('bed')) return 'sky_build'
-        return null
-    }
-
-    private getBlockScore(name: string, y: number){
-        const n = name.toLowerCase()
-
-        if (n.includes('sign')) return 3
-        if (n === 'nether_portal' || n === 'end_portal' || n === 'portal') return 8
-        if (n === 'bubble_column') return 10
-        if (n === 'bedrock' && y > 4) return 15
-        if (n === 'spawner' || n === 'mob_spawner') return 20
-        if (n === 'respawn_anchor' || n === 'end_gateway') return 12
-        if (n.includes('planks') || n.includes('glass') || n.includes('torch') || n.includes('lantern') || n.includes('bed')) return 2
-        return 0
-    }
-
-    private markBase(tipo: Omit<basefinderValues, 'snowflake'>){
-        const chunkChave = `${tipo.chunkX}:${tipo.chunkZ}`
-        const posChave = `${tipo.x}:${tipo.y}:${tipo.z}:${tipo.tipos}`
-
-        this.baseChunks.add(chunkChave)
-        this.logBasePos.add(posChave)
-
-        const now = new Date()
-        const snowflake = `${now.getTime()}${Math.floor(Math.random() * 1000)}`
-
-        const fullTipo: basefinderValues = {
-            snowflake,
-            ...tipo
-        }
-
-        if (!this.loggedBases.some(b => b.x === tipo.x && b.y === tipo.y && b.z === tipo.z && b.tipo === tipo.tipos)) {
-            this.loggedBases.push({
-                chunkX: tipo.chunkX,
-                chunkZ: tipo.chunkZ,
-                tipo: tipo.tipos,
-                x: tipo.x,
-                y: tipo.y,
-                z: tipo.z,
-                score: tipo.score,
-                name: tipo.name
-            })
-            this.csv.save(fullTipo)
-        }
-
-        if(this.baseTicks === 0){
-            this.baseAchada = true
         }
     }
 }

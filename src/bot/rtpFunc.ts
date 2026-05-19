@@ -1,6 +1,7 @@
 import { dados } from "../config/yamlManager";
 import { MCBot } from "./botManager";
 import { loginManager } from "./loginManager";
+import { scanChunk } from "./playeractivity/basefinder/utils/scanChunk";
 import { csvBlocks } from "./playeractivity/csvBlocks";
 import { csvLoot } from "./playeractivity/csvLoot";
 
@@ -8,6 +9,9 @@ import { csvLoot } from "./playeractivity/csvLoot";
 // ex: Você foi teleportado para x26895 y105 z42727!
 
 export class rtpFunc{
+    private teleportado = false
+    private ultimoRtp = 0
+
     constructor(
         private mc: MCBot,
         private login: loginManager,
@@ -17,21 +21,29 @@ export class rtpFunc{
 
     init(){
         const bot = this.mc.getBot()
-   
-        bot.on('spawn',()=>{
-            setInterval(() => { //mudar isso aqui, ta dando rtp varias vezes a longo prazo
-                if(!this.login.SMconnected) return
+        
+        const isSpawn = () => {
+            if(Math.abs(bot.entity.position.x) <= 100 && Math.abs(bot.entity.position.z) <= 100) return true
+            return false
+        }
 
-                bot.chat("/rtp world world")
-                console.log('bot deu rtp')
+        const sendRtp = async () =>{
+            if(!this.login.SMconnected) return
+            const agora = Date.now()
+            if(agora - this.ultimoRtp < 67420) return
+            bot.chat("/rtp world world")
+            console.log('bot deu rtp')
+            this.ultimoRtp = agora
+        }
 
-                setTimeout(() => {
+        const scanBlocks = ()=>{
+            setTimeout(() => {
                     const now = new Date()
                     const snowflake = `${now.getTime()}${Math.floor(Math.random() * 1000)}`
                     // sim, e preciso isso, sei que e feio.
-    
+
                     const blocks = bot.findBlocks({
-                        matching: (block)=>{ // colocar na config.yml dps
+                        matching: (block)=>{
                             return dados.blockLogger.some(name => block.name.includes(name))
                         },
                         maxDistance: 256,
@@ -41,6 +53,7 @@ export class rtpFunc{
                     for (const pos of blocks){
                         const block = bot.blockAt(pos)
                         if(!block) continue
+
                         this.lootBlocks.save({
                             snowflake,
                             x: pos.x,
@@ -73,8 +86,34 @@ export class rtpFunc{
                                     enchanted: !!meta.nbt
                                 })
                             }
-                    }, 5000);              
-            }, 67420);  
+                    }, 12000);
+        }
+
+        bot.on('message', (msg)=>{
+            if(msg.toString().includes('Você já está se teleportando')){
+                this.teleportado = true
+            }
+
+            if(msg.toString().includes('Teleportando em')){
+                this.teleportado = true
+            }   
         })
+
+        bot.on('spawn',()=>{
+                if(!this.login.SMconnected) return
+                sendRtp()
+
+                if(!isSpawn()){
+                    scanBlocks()
+                }
+        })
+
+        setInterval(() => {
+            sendRtp()
+
+            if(!isSpawn()){
+                scanBlocks()
+            }
+        }, 67420);
     }
 }

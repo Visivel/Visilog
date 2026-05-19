@@ -23,7 +23,6 @@ export class csvBasefinder{
             dados.y,
             dados.z,
             this.escape(dados.name),
-            dados.name,
             dados.id,
             dados.score
         ].join(',')+'\n')
