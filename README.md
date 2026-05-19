@@ -9,7 +9,15 @@ Em Maio de 2024 eu lancei o bot que mudou a comunidade brasileira de Semi Anarqu
 
 ### Mas então... Por que voltou?
 
-O motivo da volta dele foi o mesmo de sua nascensa, aprendizado, com um novo servidor maior, eu tive outras ideais de outras coisas pra fazer, dentro dela, coleta de dados em massa. Em maioria ela sera usada para estatísticas, heatmaps (mapa de calor) e dentre outros. Eu fiz ele porque é em Typescript (o que eu não tenho tanta dominancia) e também por causa do aprendizado do Grafana e Prometheus. 
+O motivo da volta dele foi o mesmo de sua nascensa, aprendizado, com um novo servidor maior, eu tive outras ideais de outras coisas pra fazer, dentro dela, coleta de dados em massa. Em maioria ela sera usada para estatísticas, heatmaps (mapa de calor) e dentre outros. Eu fiz ele porque é em Typescript (o que eu não tenho tanta dominância) e também por causa do aprendizado do Grafana e Prometheus. 
+
+# Índice
+- [Utilização](#o-que-ele-faz-e-como-usar)
+  - [Como usar](#como-usar)
+  - [Qual sua utilidade](#pra-que-ele-serve)
+- [Configurações adicionais](#configurações-adicionais)
+- 🚧 [Integração com interface e estatísticas](#-integracao-com-o-grafana-e-prometheus-)
+- [Contribuições](#contribuições)
 
 # O que ele faz e Como usar?
 > [!CAUTION] 
@@ -26,7 +34,7 @@ Primeiro clone o repositório
 git clone https://github.com/Visivel/Visilog.git
 ```
 
-Então instale as dependencias
+Então instale as dependências
 ```bash
 npm install
 npm install -D typescript ts-node
