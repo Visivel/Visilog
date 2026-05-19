@@ -4,6 +4,7 @@ import { basefinderMain } from "./bot/playeractivity/basefinder/basefinderMain";
 import { csvBasefinder } from "./bot/playeractivity/csvBasefinder";
 import { csvBlocks } from "./bot/playeractivity/csvBlocks";
 import { csvLoot } from "./bot/playeractivity/csvLoot";
+import { csvTeleports } from "./bot/playeractivity/csvTeleport";
 import { rtpFunc } from "./bot/rtpFunc";
 import { serverManager } from "./bot/serverManager";
 import { dados } from "./config/yamlManager";
@@ -24,8 +25,6 @@ loginresolver.init()
 const metricMain = new metricServer()
 metricMain.init(dados.grafanaConfig.expressPort)
 
-const lootCsv = new csvLoot()
-const blockCsv = new csvBlocks
 const basefinderCsv = new csvBasefinder()
 const basefinder = new basefinderMain(bot, basefinderCsv)
 
@@ -33,7 +32,7 @@ const managers = [
     new serverManager(bot),
     new metricManager(bot),
     basefinder,
-    new rtpFunc(bot, loginresolver, lootCsv, blockCsv)
+    new rtpFunc(bot, loginresolver, new csvLoot(), new csvBlocks(), new csvTeleports())
 ]
 
 // TODO: carregar classes por vez, ex: carregar primeiro login e so entao serverManager

@@ -4,8 +4,10 @@ import { loginManager } from "./loginManager";
 import { scanChunk } from "./playeractivity/basefinder/utils/scanChunk";
 import { csvBlocks } from "./playeractivity/csvBlocks";
 import { csvLoot } from "./playeractivity/csvLoot";
+import { csvTeleports } from "./playeractivity/csvTeleport";
 
 // TODO: save de teleporte do bot, timestamp, coord
+// TODO: separar isso em classes
 // ex: Você foi teleportado para x26895 y105 z42727!
 
 export class rtpFunc{
@@ -16,7 +18,8 @@ export class rtpFunc{
         private mc: MCBot,
         private login: loginManager,
         private lootCsv: csvLoot,
-        private lootBlocks: csvBlocks
+        private csvBlocksVar: csvBlocks,
+        private csvTeleport: csvTeleports
     ){}
 
     init(){
@@ -54,7 +57,7 @@ export class rtpFunc{
                         const block = bot.blockAt(pos)
                         if(!block) continue
 
-                        this.lootBlocks.save({
+                        this.csvBlocksVar.save({
                             snowflake,
                             x: pos.x,
                             y: pos.y,
@@ -97,6 +100,18 @@ export class rtpFunc{
             if(msg.toString().includes('Teleportando em')){
                 this.teleportado = true
             }   
+
+            const now = new Date()
+            const snowflake = `${now.getTime()}${Math.floor(Math.random() * 1000)}`
+            const match = msg.toString().match(/x(-?\d+)\s+y(-?\d+)\s+z(-?\d+)/)
+            if(match){
+                this.csvTeleport.save({
+                    snowflake,
+                    x: Number(match[1]),
+                    y: Number(match[2]),
+                    z: Number(match[3])
+                })
+            }
         })
 
         bot.on('spawn',()=>{
